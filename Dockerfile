@@ -1,27 +1,23 @@
-# Gunakan image resmi Golang untuk build
-FROM golang:1.21-alpine AS build
+# Gunakan base image yang lebih stabil (bukan Alpine)
+FROM golang:1.21-bullseye as build
 
-# Set working directory
 WORKDIR /app
 
-# Salin go.mod dan go.sum, lalu unduh dependencies
+# Salin go.mod dan go.sum, lalu unduh dependensi
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Salin seluruh source code
+# Salin semua file source code
 COPY . .
 
-# Build binary-nya
+# Build aplikasi
 RUN go build -v -o /run-app .
 
-# Image akhir (minimal, hanya untuk menjalankan binary)
-FROM alpine:latest
+# Buat image runtime minimal
+FROM debian:bullseye-slim
 
-# Salin binary dari image build
 COPY --from=build /run-app /run-app
 
-# Buka port 8080 (atau sesuaikan dengan yang kamu pakai di app.go)
 EXPOSE 8080
 
-# Jalankan aplikasinya
 ENTRYPOINT ["/run-app"]
